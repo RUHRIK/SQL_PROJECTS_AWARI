@@ -1,0 +1,93 @@
+# Tempo de casa de Funcionarios
+SELECT
+    DATA_DE_DEMISSAO,
+    DATA_DE_ADMISSAO,
+    CASE
+        WHEN DT_DEMISSAO >30 THEN 'Mais de 3 meses'
+        WHEN DT_DEMISSAO <30 THEN 'Menos de 3 meses'
+    END AS TEMPO_DE_CASA
+FROM(
+SELECT
+    DT_ADMISSAO,
+    DT_DEMISSAO,
+    DATE(CONCAT(SUBSTR(DT_ADMISSAO,7,4), '-', SUBSTR(DT_ADMISSAO,4,2), '-', SUBSTR(DT_ADMISSAO,1,2))) AS DATA_DE_ADMISSAO,
+
+    DATE(CONCAT(SUBSTR(DT_DEMISSAO,7,4), '-', SUBSTR(DT_DEMISSAO,4,2), '-', SUBSTR(DT_DEMISSAO,1,2))) AS DATA_DE_DEMISSAO
+
+
+FROM FUNCIONARIO
+WHERE DT_DEMISSAO AND DT_ADMISSAO IS NOT NULL) AS `*FÉ`;
+
+
+# Idade dos funcionarios e data de nascimento
+SELECT DIA,
+             MES,
+             ANO,
+             DATA_NASCIMENTO,
+             CURRENT_DATE                   AS HOJE,
+            current_date - DATA_NASCIMENTO AS IDADE
+      FROM (SELECT SUBSTR(NASCIMENTO, 1, 2)               AS DIA,
+
+                   SUBSTR(NASCIMENTO, 4, 2)               AS MES,
+
+                   SUBSTR(NASCIMENTO, 7, 4)               AS ANO,
+
+                   DATE(CONCAT(SUBSTR(NASCIMENTO, 7, 4), '-', SUBSTR(NASCIMENTO, 4, 2), '-',
+                               SUBSTR(NASCIMENTO, 1, 2))) AS DATA_NASCIMENTO
+
+
+            FROM FUNCIONARIO
+            LIMIT 3) AS `*FÉ`;
+
+
+# Quantidade de Funcionarios ATIVOS na Empresa por vp
+SELECT
+    VP,
+    COUNT(DISTINCT NOME) AS QTD_FUNCIONARIOS
+FROM FUNCIONARIO
+WHERE STS_ACESSO = 'Ativo'
+GROUP BY
+        VP
+HAVING COUNT(DISTINCT NOME);
+
+
+# Seleçao de funcionarios por faixa etaria.
+SELECT
+    COUNT(DISTINCT NOME  ) AS QUANTIDADE_FUNCIONARIOS,
+    VP,
+    FAIXA_ETARIA
+FROM
+     (
+    SELECT NOME,
+        VP,
+           NASCIMENTO,
+
+
+            CASE
+                WHEN CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) >=18
+                AND CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) <25
+                THEN '18-24'
+
+                 WHEN CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) >=25
+                AND CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) <30
+                THEN '25-30'
+
+                WHEN CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) >=30
+                AND CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) <35
+                THEN '30-35'
+
+                WHEN CURDATE() - DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) >=40
+                THEN '40'
+
+                ELSE 0
+                 END AS FAIXA_ETARIA
+
+FROM FUNCIONARIO
+        WHERE DATE (CONCAT(SUBSTR(NASCIMENTO,7,4), '-', SUBSTR(NASCIMENTO,4,2), '-',SUBSTR(NASCIMENTO,1,2))) and VP IS NOT NULL) as `*FE`
+GROUP BY
+    VP,
+    FAIXA_ETARIA;
+
+
+
+
